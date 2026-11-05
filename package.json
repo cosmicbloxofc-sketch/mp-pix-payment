@@ -1,0 +1,9 @@
+{
+  "name": "mp-pix-payment",
+  "version": "1.0.0",
+  "private": true,
+  "description": "PIX payment flow",
+  "scripts": {
+    "start": "vercel dev"
+  }
+}

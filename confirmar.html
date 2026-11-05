@@ -79,7 +79,7 @@
             const cpf = document.getElementById("input-cpf").value;
             const email = document.getElementById("email").value;
             const telefone = document.getElementById("telefone").value;
-            const nascimento = "<?php echo $_GET['nascimento'] ?? ''; ?>";
+            const nascimento = new URLSearchParams(window.location.search).get("nascimento") || "";
             
             // Redireciona para a página de resumo de pagamento
             const params = new URLSearchParams({

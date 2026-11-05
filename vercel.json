@@ -23,6 +23,10 @@
     {
       "source": "/resumo_pagamento.php",
       "destination": "/resumo_pagamento.html"
+    },
+    {
+      "source": "/pagamento_sucesso.php",
+      "destination": "/pagamento_sucesso.html"
     }
   ]
 }
