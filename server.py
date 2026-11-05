@@ -928,9 +928,9 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                     "ip": "127.0.0.1"
                 }
                 
-                # Chaves AnubisPay
-                public_key = "anubispay_live_1H4CMFmBvkmouLHefnZhJTdEHe7x79U0"
-                secret_key = "Danubispay_live_1H4CMFmBvkmouLHefnZhJTdEHe7x79U0ve_6wkQttCvKgt7EN0uqw4Yj3P1DIkX4puZ"
+                # Chaves AnubisPay (via variáveis de ambiente)
+                public_key = os.environ.get('ANUBISPAY_PUBLIC_KEY', 'anubispay_live_***')
+                secret_key = os.environ.get('ANUBISPAY_SECRET_KEY', 'sk_live_***')
                 
                 # Autenticação Basic
                 import base64
