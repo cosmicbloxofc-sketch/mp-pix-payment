@@ -35,13 +35,17 @@ export default async function handler(req, res) {
       });
     }
 
-    // Consulta API de CPF
+    // Consulta API de CPF (com timeout de 8s)
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 8000);
     const response = await fetch(`https://suapendencia.org/atencao1/api.php?cpf=${cpfLimpo}`, {
       method: 'GET',
       headers: {
         'Accept': 'application/json'
-      }
+      },
+      signal: controller.signal
     });
+    clearTimeout(timer);
     
     console.log('Response status:', response.status);
 
@@ -54,14 +58,27 @@ export default async function handler(req, res) {
     }
 
     const data = await response.json();
-    console.log('Dados recebidos:', data);
+    console.log('Dados recebidos:', JSON.stringify(data));
+
+    // API externa retorna aninhado em "dados": { status, message, dados: { cpf, nome, ... } }
+    const dados = data.dados || data;
+
+    const nome = dados.nome || data.nome || '';
+    const nascimento = dados.data_nascimento || data.data_nascimento || '';
+
+    if (!nome) {
+      return res.status(200).json({
+        success: false,
+        error: 'CPF não encontrado.'
+      });
+    }
 
     return res.status(200).json({
       success: true,
-      nome: data.nome || '',
-      cpf: data.cpf || cpfLimpo,
-      data_nascimento: data.data_nascimento || '',
-      nascimento: data.data_nascimento || ''
+      nome: nome,
+      cpf: dados.cpf || data.cpf || cpfLimpo,
+      data_nascimento: nascimento,
+      nascimento: nascimento
     });
 
   } catch (error) {

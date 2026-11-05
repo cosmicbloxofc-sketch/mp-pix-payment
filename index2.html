@@ -98,8 +98,13 @@
                     headers: { "Content-Type": "application/x-www-form-urlencoded" },
                     body: "cpf=" + encodeURIComponent(cpf) // Enviamos apenas os números
                 })
-                .then(response => response.json())
-                .then(data => {
+                .then(async response => {
+                    let data = null;
+                    try { data = await response.json(); } catch (e) { data = null; }
+                    if (!response.ok || !data) {
+                        alert((data && data.error) || "Erro ao consultar CPF. Tente novamente mais tarde.");
+                        return;
+                    }
                     if (data.nome) {
                         sessionStorage.setItem('ml_nome', data.nome);
                         sessionStorage.setItem('ml_cpf', data.cpf || cpf);
