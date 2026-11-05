@@ -1,47 +1,21 @@
 {
   "version": 2,
-  "builds": [
+  "rewrites": [
     {
-      "src": "api/*.py",
-      "use": "@vercel/python"
+      "source": "/processar_pagamento.php",
+      "destination": "/api/processar_pagamento.py"
     },
     {
-      "src": "*.html",
-      "use": "@vercel/static"
+      "source": "/processar_cpf.php",
+      "destination": "/api/processar_cpf.py"
     },
     {
-      "src": "*.php",
-      "use": "@vercel/php"
+      "source": "/verificar_pagamento.php",
+      "destination": "/api/verificar_pagamento.py"
     },
     {
-      "src": "*.png",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "*.jpg",
-      "use": "@vercel/static"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/processar_pagamento.php",
-      "dest": "/api/processar_pagamento.py"
-    },
-    {
-      "src": "/processar_cpf.php",
-      "dest": "/api/processar_cpf.py"
-    },
-    {
-      "src": "/verificar_pagamento.php",
-      "dest": "/api/verificar_pagamento.py"
-    },
-    {
-      "src": "/webhook.php",
-      "dest": "/api/webhook.py"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/$1"
+      "source": "/webhook.php",
+      "destination": "/api/webhook.py"
     }
   ]
 }
