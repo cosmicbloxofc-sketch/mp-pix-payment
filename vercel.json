@@ -1,21 +1,28 @@
 {
-  "version": 2,
   "rewrites": [
     {
       "source": "/processar_pagamento.php",
-      "destination": "/api/processar_pagamento.py"
+      "destination": "/api/processar_pagamento"
     },
     {
       "source": "/processar_cpf.php",
-      "destination": "/api/processar_cpf.py"
+      "destination": "/api/processar_cpf"
     },
     {
       "source": "/verificar_pagamento.php",
-      "destination": "/api/verificar_pagamento.py"
+      "destination": "/api/verificar_pagamento"
     },
     {
       "source": "/webhook.php",
-      "destination": "/api/webhook.py"
+      "destination": "/api/webhook"
+    },
+    {
+      "source": "/confirmar.php",
+      "destination": "/confirmar.html"
+    },
+    {
+      "source": "/resumo_pagamento.php",
+      "destination": "/resumo_pagamento.html"
     }
   ]
 }
